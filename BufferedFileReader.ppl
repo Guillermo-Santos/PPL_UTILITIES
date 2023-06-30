@@ -1,0 +1,179 @@
+import PPL_UTILITIES:Exceptions:InvalidCharsetException;
+
+/*
+*	Represents a wrapper around the BufferedReader java class, this implementation is intended
+*	for reading large files efficiently.
+*
+* @Version	1.0
+* @Author	GSANTOS
+*/
+class BufferedFileReader
+   method BufferedFileReader(&sFullFilePath As string, &sCharset As string);
+
+   /* Reads a line from the input file */
+   method ReadLine(&sLine As string out) Returns boolean;
+
+   /* Reads a single character from the input file */
+   method Read() Returns string;
+
+   /* Reads characters into a buffer from the input file */
+   method ReadRange(&aBuffer As array of string out, &nOffset As integer, &nLength As integer) Returns integer;
+
+   /* Skips a specified number of characters in the input file */
+   method Skip(&nChars As integer) Returns integer;
+
+   /* Skips a specified number of lines in the input file */
+   method SkipLine(&nLines As integer) Returns integer;
+
+   /* Checks if the reader is ready to read */
+   method Ready() Returns boolean;
+
+   /* Checks if mark and reset operations are supported */
+   method MarkSupported() Returns boolean;
+
+   /* Marks the current position in the reader */
+   method Mark(&nReadAheadLimit As integer);
+
+   /* Resets the reader to the previously marked position */
+   method Reset();
+
+   /* Closes the reader */
+   method Close();
+
+private
+   instance JavaObject &jBufferedReader;
+
+   /* Retrieves the Java Charset object for the specified charset */
+   method GetCharset(&sCharset As string) Returns JavaObject;
+end-class;
+
+method BufferedFileReader
+   /+ &sFullFilePath as String, +/
+   /+ &sCharset as String +/
+   Local JavaObject &jFileInputStream, &jInputStreamReader;
+
+   /* Create FileInputStream to read the file */
+   &jFileInputStream = CreateJavaObject("java.io.FileInputStream", &sFullFilePath);
+
+   /* Create InputStreamReader with specified charset */
+   &jInputStreamReader = CreateJavaObject("java.io.InputStreamReader", &jFileInputStream, %This.GetCharset(&sCharset));
+
+   /* Create BufferedReader to read from InputStreamReader */
+   &jBufferedReader = CreateJavaObject("java.io.BufferedReader", &jInputStreamReader);
+end-method;
+
+method ReadLine
+   /+ &sLine as String out +/
+   /+ Returns Boolean +/
+   Local any &oLine;
+
+   /* Read a line from the BufferedReader */
+   &oLine = &jBufferedReader.readLine();
+   WriteToLog(%ApplicationLogFence_Level2, String(&oLine));
+
+   If &oLine <> Null Then
+      &sLine = &oLine;
+      Return True;
+   End-If;
+
+   Return False;
+end-method;
+
+method Read
+   /+ Returns String +/
+   Local integer &result;
+
+   /* Read a single character from the BufferedReader */
+   &result = &jBufferedReader.read();
+   If &result <> - 1 Then
+      Return Char(&result);
+   End-If;
+
+   Return "";
+end-method;
+
+method ReadRange
+   /+ &aBuffer as Array of String out, +/
+   /+ &nOffset as Integer, +/
+   /+ &nLength as Integer +/
+   /+ Returns Integer +/
+   Local JavaObject &jCharArray;
+   Local integer &result;
+
+   &jCharArray = CreateJavaObject("java.lang.char[]", &nLength);
+
+   /* Read characters into the char array buffer */
+   &result = &jBufferedReader.read(&jCharArray, &nOffset, &nLength);
+
+   If &result > 0 Then
+      CopyFromJavaArray(&jCharArray, &aBuffer);
+   End-If;
+
+   Return &result;
+end-method;
+
+method Skip
+   /+ &nChars as Integer +/
+   /+ Returns Integer +/
+
+   /* Skip a specified number of characters in the BufferedReader */
+   Return &jBufferedReader.skip(&nChars);
+end-method;
+
+method SkipLine
+   /+ &nLines as Integer +/
+   /+ Returns Integer +/
+   Local integer &iSkippedLines = 0;
+
+   While &jBufferedReader.readLine() <> Null And
+         &iSkippedLines < &nLines
+      &iSkippedLines = &iSkippedLines + 1;
+   End-While;
+
+   Return &iSkippedLines;
+end-method;
+
+method Ready
+   /+ Returns Boolean +/
+   /* Check if the BufferedReader is ready to read */
+   Return &jBufferedReader.ready();
+end-method;
+
+method MarkSupported
+   /+ Returns Boolean +/
+   /* Check if mark and reset operations are supported */
+   Return &jBufferedReader.markSupported();
+end-method;
+
+method Mark
+   /+ &nReadAheadLimit as Integer +/
+   /* Mark the current position in the reader */
+   &jBufferedReader.mark(&nReadAheadLimit);
+end-method;
+
+method Reset
+   /* Reset the reader to the previously marked position */
+   &jBufferedReader.reset();
+end-method;
+
+method Close
+   /* Close the BufferedReader */
+   &jBufferedReader.close();
+end-method;
+
+method GetCharset
+   /+ &sCharset as String +/
+   /+ Returns JavaObject +/
+   Local JavaObject &jCharset;
+
+   try
+      /* Get the Charset object for the specified charset name */
+      &jCharset = GetJavaClass("java.nio.charset.Charset").forName(&sCharset);
+   catch Exception &dummy
+      /* Log and handle any exceptions */
+      WriteToLog(%ApplicationLogFence_Error, &dummy.ToString() | Char(10) | &dummy.Context);
+      throw create PPL_UTILITIES:Exceptions:InvalidCharsetException(&sCharset);
+   end-try;
+
+   Return &jCharset;
+end-method;

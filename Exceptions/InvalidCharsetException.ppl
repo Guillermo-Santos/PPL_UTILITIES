@@ -1,0 +1,8 @@
+class InvalidCharsetException extends Exception
+   method InvalidCharsetException(&sCharset As string);
+end-class;
+
+method InvalidCharsetException
+   /+ &sCharset as String +/
+   %Super = CreateException(0, 0, "Unsupported charset: '" | &sCharset | "'");
+end-method;

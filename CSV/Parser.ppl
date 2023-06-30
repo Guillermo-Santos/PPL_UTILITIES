@@ -1,0 +1,75 @@
+import PPL_UTILITIES:CSV:Line;
+
+/*
+*	This Class is a parser that convert a string line on a CSV:Line Object.
+*
+* @Version	1.0
+* @Author	GSANTOS
+*/
+class Parser
+   method ParseLine(&sLine As string, &oLine As PPL_UTILITIES:CSV:Line out);
+
+private
+   Constant &sUniqueSecuence = ";@;";
+end-class;
+
+method ParseLine
+   /+ &sLine as String, +/
+   /+ &oLine as PPL_UTILITIES:CSV:Line +/
+   Local string &next_char, &new_string;
+   Local boolean &in_field = False;
+   Local integer &i;
+
+   /* Loop through each character of the string, one by one */
+   For &i = 1 To Len(&sLine)
+      /* Get the next character */
+      &next_char = Substring(&sLine, &i, 1);
+
+      Evaluate &next_char
+      When = """"
+         /* This is a double quote character */
+         If Not &in_field Then
+            /* We are currently not in a field, so start a new field */
+            &in_field = True;
+         Else
+            /* We have previously found a double quote character,
+            so the field has now ended */
+            &in_field = False;
+         End-If;
+
+         Break;
+      When = ","
+         /* This is a comma */
+         If &in_field Then
+            /* We are currently in a field,
+            so replace the comma with the special sequence */
+            &new_string = &new_string | &sUniqueSecuence;
+         Else
+            /* We are not in a field, so include the comma as normal */
+            &new_string = &new_string | ",";
+         End-If;
+
+         Break;
+      When-Other
+         /* All other characters - use as normal */
+         &new_string = &new_string | &next_char;
+         Break;
+      End-Evaluate;
+   End-For;
+
+   /* Perform a split on the new string */
+   Local array of string &words = Split(&new_string, ",");
+
+   /* Replace all instances of the special sequence with the comma */
+   For &i = 1 To &words.Len
+      &words [&i] = Substitute(&words [&i], &sUniqueSecuence, ",");
+   End-For;
+   WriteToLog(%ApplicationLogFence_Level2, "Parsed Line:" | &words.Join(", "));
+
+   If &oLine <> Null Then
+      &oLine.SetFields(&words);
+   Else
+      &oLine = create PPL_UTILITIES:CSV:Line(&words);
+   End-If;
+end-method;
+

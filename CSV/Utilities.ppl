@@ -1,0 +1,40 @@
+class Utilities
+   method GetExcelColumnHeader(&position As integer) Returns string;
+   method GetExcelColumnPosition(&columnCode As string) Returns integer;
+private
+   Constant &base = 26;
+   Constant &ACharCode = 65; /* &ACharCode -> Code("A") */
+end-class;
+
+method GetExcelColumnPosition
+   /+ &columnCode as String +/
+   /+ Returns Integer +/
+   Local integer &i;
+   Local integer &position = 0;
+   Local integer &columnLength = Len(&columnCode);
+
+   For &i = 1 To &columnLength
+      Local string &currentChar = Upper(Substring(&columnCode, &i, 1));
+      Local integer &charValue = Code(&currentChar) - &ACharCode + 1;
+
+      &position = (&position * &base) + &charValue;
+   End-For;
+
+   Return &position;
+end-method;
+
+method GetExcelColumnHeader
+   /+ &position as Integer +/
+   /+ Returns String +/
+   Local string &columnHeader = "";
+
+   While &position > 0
+      Local integer &remainder = Mod((&position - 1), &base);
+      Local string &currentChar = Char(&remainder + &ACharCode);
+      &columnHeader = &currentChar | &columnHeader;
+      &position = (&position - &remainder - 1) / &base;
+   End-While;
+
+   Return &columnHeader;
+end-method;
+

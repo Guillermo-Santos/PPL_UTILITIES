@@ -1,0 +1,67 @@
+import PPL_UTILITIES:CSV:Utilities;
+
+/*
+*	Represents a CSV File Line, it give methods to interact with the contents of a line.
+*
+* @Version	1.0
+* @Author	GSANTOS
+*/
+class Line
+   property integer Len get;
+
+   method Line(&aFields As array of string);
+
+   method GetField(&sFieldCode As string) Returns string;
+   method SetField(&sFieldCode As string, &sValue As string);
+   method SetFields(&aFields As array of string);
+
+   method GetFieldByIndex(&index As integer) Returns string;
+   method SetFieldByIndex(&index As integer, &sValue As string);
+private
+   instance array of string &Fields;
+   instance PPL_UTILITIES:CSV:Utilities &CSVUtils;
+end-class;
+
+method Line
+   /+ &aFields as Array of String +/
+   &Fields = &aFields;
+
+   If &CSVUtils = Null Then
+      &CSVUtils = create PPL_UTILITIES:CSV:Utilities();
+   End-If;
+end-method;
+
+method GetField
+   /+ &sFieldCode as String +/
+   /+ Returns String +/
+   Return %This.GetFieldByIndex(&CSVUtils.GetExcelColumnPosition(&sFieldCode));
+end-method;
+
+method SetField
+   /+ &sFieldCode as String, +/
+   /+ &sValue as String +/
+   %This.SetFieldByIndex(&CSVUtils.GetExcelColumnPosition(&sFieldCode), &sValue);
+end-method;
+
+method SetFields
+   /+ &aFields as Array of String +/
+   &Fields = &aFields;
+end-method;
+
+method GetFieldByIndex
+   /+ &index as Integer +/
+   /+ Returns String +/
+   Return &Fields [&index];
+end-method;
+
+method SetFieldByIndex
+   /+ &index as Integer, +/
+   /+ &sValue as String +/
+   &Fields [&index] = &sValue;
+end-method;
+
+get Len
+   /+ Returns Integer +/
+   Return &Fields.Len;
+end-get;
+

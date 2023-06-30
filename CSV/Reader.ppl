@@ -1,0 +1,39 @@
+import PPL_UTILITIES:BufferedFileReader;
+import PPL_UTILITIES:CSV:Parser;
+import PPL_UTILITIES:CSV:Line;
+
+class Reader
+   method Reader(&sFilePath As string, &sCharset As string);
+
+   method ReadLine(&oLine As PPL_UTILITIES:CSV:Line out) Returns boolean;
+   method Close();
+private
+   instance PPL_UTILITIES:BufferedFileReader &oFileReader;
+   instance PPL_UTILITIES:CSV:Parser &oLineParser;
+end-class;
+
+method Reader
+   /+ &sFilePath as String, +/
+   /+ &sCharset as String +/
+   &oFileReader = create PPL_UTILITIES:BufferedFileReader(&sFilePath, &sCharset);
+   &oLineParser = create PPL_UTILITIES:CSV:Parser();
+end-method;
+
+method ReadLine
+   /+ &oLine as PPL_UTILITIES:CSV:Line out +/
+   /+ Returns Boolean +/
+   Local string &sLine = "";
+   Local boolean &notEOF = &oFileReader.ReadLine(&sLine);
+
+   If &notEOF Then
+      &oLineParser.ParseLine(&sLine, &oLine);
+   End-If;
+   WriteToLog(%ApplicationLogFence_Level2, "&notEOF: " | &notEOF);
+
+   Return &notEOF;
+end-method;
+
+method Close
+   &oFileReader.Close();
+end-method;
+
