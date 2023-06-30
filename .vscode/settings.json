@@ -1,0 +1,10 @@
+{
+   "editor.largeFileOptimizations": false,
+   "editor.indentSize": 3,
+   "[peoplecode]": {
+     "editor.wordSeparators": "`~!@#$^*()-=+[{]}\\|;:'\",.<>/?"
+   },
+   "[peoplecode_trace]": {
+     "editor.wordSeparators": "`~!@#$^*()-=+[{]}\\|;:'\",.<>/?"
+   }
+}

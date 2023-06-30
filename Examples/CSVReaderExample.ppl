@@ -1,0 +1,23 @@
+import PPL_UTILITIES:CSV:Reader;
+import PPL_UTILITIES:CSV:Line;
+
+Local string &myCSVPath = "/an/absolute/filepath/myCSV.csv";
+Local PPL_UTILITIES:CSV:Line &oLine; /* Reusable Line Object */
+
+Local PPL_UTILITIES:CSV:Reader &CSVReader = create PPL_UTILITIES:CSV:Reader(&myCSVPath, "UTF-8");
+Local record &oRec = CreateRecord(Record.MYRECORD);
+
+StartWork();
+try
+   While &CSVReader.ReadLine(&oLine)
+      &oRec.MYFIELD1.value = &oLine.GetField("A");
+      &oRec.MYFIELD2.value = &oLine.GetField("B");
+      &oRec.MYFIELD3.value = &oLine.GetField("C");
+      &oRec.MYFIELD4.value = &oLine.GetField("AB");
+      &oRec.Insert();
+   End-While;
+catch Exception &ex
+   WriteToLog(%ApplicationLogFence_Error, &ex.ToString() | Char(10) | &ex.Context);
+end-try;
+&CSVReader.Close();
+CommitWork();
