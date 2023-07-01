@@ -25,10 +25,7 @@ end-class;
 method Line
    /+ &aFields as Array of String +/
    &Fields = &aFields;
-
-   If &CSVUtils = Null Then
-      &CSVUtils = create PPL_UTILITIES:CSV:Utilities();
-   End-If;
+   &CSVUtils = create PPL_UTILITIES:CSV:Utilities();
 end-method;
 
 method GetField
