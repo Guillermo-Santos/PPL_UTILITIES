@@ -6,6 +6,12 @@
 *	behave as if it were the item at index [N], where N is a given index of the main array of values and the inner
 *	array. This can lead to unexpected errors or incorrect results when retrieving or setting values.
 *
+*  Example:
+*     Imaging you have an array of 1 value and insert it as the item two of the outer array, what happends is
+*     that when you try to access the array by going to index 2 of the outer array ('&array[2]')
+*     the statement is interpreted as '&array[2][2]' and this throw an exception since you are "out of
+*     bounds".
+*
 *	The exact cause of this bug is unknown, but this class provides a fix to mitigate its effects.
 *
 *	By encapsulating the value in an instance of the Value class, the bug is avoided as the value
