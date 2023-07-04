@@ -1,0 +1,182 @@
+import PPL_UTILITIES:Collections:IDictionary;
+/* BUG-001 An array of any is treated as it's item if said item is other array.*/
+import PPL_UTILITIES:Collections:Value:Value;
+
+/*	 This Class prevent that by wrapping the value. */
+/* BUG-001 */
+
+/*
+*	Clase que implementa la intefaz de diccionario, util para situaciones en que los datos se almacenan por llave.
+*
+* @Version	1.2
+* @Author	GSANTOS
+**/
+class Dictionary implements PPL_UTILITIES:Collections:IDictionary
+   property integer Len get;
+
+   method Dictionary();
+
+   method Get(&sKey As string) Returns any;
+   method Set(&sKey As string, &Value As any);
+   method Put(&sKey As string, &Value As any);
+   method Remove(&sKey As string) Returns boolean;
+   method TryGet(&sKey As string, &Value As any out) Returns boolean;
+   method TrySet(&sKey As string, &Value As any) Returns boolean;
+   method GetIndex(&sKey As string) Returns integer;
+   method GetByIndex(&iIndex As integer) Returns any;
+   method GetKeys() Returns array of string;
+   method GetValues() Returns array of any;
+   method Flush();
+private
+   method KeyExists(&sKey As string) Returns boolean;
+
+   instance array of string &sKeys;
+   instance array of PPL_UTILITIES:Collections:Value:Value &Values;
+   instance integer &index;
+end-class;
+
+method Dictionary
+   %This.Flush();
+end-method;
+
+method KeyExists
+   /+ &sKey as String +/
+   /+ Returns Boolean +/
+   &index = &sKeys.Find(&sKey);
+   Return (&index > 0);
+end-method;
+
+method Get
+   /+ &sKey as String +/
+   /+ Returns Any +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Get +/
+   If %This.KeyExists(&sKey) Then
+      Return &Values.Get(&index).Get();
+   End-If;
+
+   Return Null;
+end-method;
+
+method Set
+   /+ &sKey as String, +/
+   /+ &Value as Any +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Set +/
+   If %This.KeyExists(&sKey) Then
+      &Values [&index].Set(&Value);
+      Return;
+   End-If;
+
+   throw CreateException(0, 0, "Valor '%1' no existe en esta colección", &sKey);
+end-method;
+
+method Put
+   /+ &sKey as String, +/
+   /+ &Value as Any +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Put +/
+   If %This.KeyExists(&sKey) Then
+      &Values [&index].Set(&Value);
+      Return;
+   End-If;
+
+   &sKeys.Push(&sKey);
+   &Values.Push(create PPL_UTILITIES:Collections:Value:Value(&Value));
+end-method;
+
+method Remove
+   /+ &sKey as String +/
+   /+ Returns Boolean +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Remove +/
+   Local boolean &exists = %This.KeyExists(&sKey);
+   Local array of string &tempKeys;
+   Local array of any &tempValues;
+   Local string &tempKey, &delKey;
+   Local any &tempValue;
+
+   Local integer &i;
+
+   If &exists Then
+      &sKeys.Replace(&index, 1);
+      &Values.Replace(&index, 1);
+   End-If;
+
+   Return &exists;
+end-method;
+
+method TryGet
+   /+ &sKey as String, +/
+   /+ &Value as Any out +/
+   /+ Returns Boolean +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.TryGet +/
+   Local boolean &exists = %This.KeyExists(&sKey);
+
+   If &exists Then
+      &Value = &Values.Get(&index).Get();
+   End-If;
+   Return &exists;
+end-method;
+
+method TrySet
+   /+ &sKey as String, +/
+   /+ &Value as Any +/
+   /+ Returns Boolean +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.TrySet +/
+   Local boolean &exists = %This.KeyExists(&sKey);
+
+   If Not &exists Then
+      &sKeys.Push(&sKey);
+      &Values.Push(create PPL_UTILITIES:Collections:Value:Value(&Value));
+   End-If;
+
+   Return ( Not &exists);
+end-method;
+
+method GetIndex
+   /+ &sKey as String +/
+   /+ Returns Integer +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.GetIndex +/
+   If %This.KeyExists(&sKey) Then
+      Return &index;
+   End-If;
+
+   Return - 1;
+end-method;
+
+method GetByIndex
+   /+ &iIndex as Integer +/
+   /+ Returns Any +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.GetByIndex +/
+   Return &Values.Get(&iIndex).Get();
+end-method;
+
+method GetKeys
+   /+ Returns Array of String +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.GetKeys +/
+   Return &sKeys.Clone();
+end-method;
+
+method GetValues
+   /+ Returns Array of Any +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.GetValues +/
+   Local array of PPL_UTILITIES:Collections:Value:Value &cv = &Values.Clone();
+   Local array of any &v = CreateArray();
+   Local integer &i;
+
+   For &i = 1 To &cv.Len
+      &v [&i] = &cv [&i].Get();
+   End-For;
+
+   Return &v;
+end-method;
+
+method Flush
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Flush +/
+   &sKeys = CreateArrayRept("", 0);
+   &Values = CreateArrayRept(create PPL_UTILITIES:Collections:Value:Value(""), 0);
+end-method;
+
+get Len
+   /+ Returns Integer +/
+   /+ Extends/implements PPL_UTILITIES:Collections:IDictionary.Len +/
+   Return &sKeys.Len;
+end-get;
+

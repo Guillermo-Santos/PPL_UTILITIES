@@ -1,0 +1,56 @@
+/**
+*	This class serves as a workaround to address a specific bug related to arrays of any values in the Dictionary
+*	and HashTable implementations.
+*
+*	The bug occurs when accessing an item in the array that is itself an array. It causes the array to
+*	behave as if it were the item at index [N], where N is a given index of the main array of values and the inner
+*	array. This can lead to unexpected errors or incorrect results when retrieving or setting values.
+*
+*	The exact cause of this bug is unknown, but this class provides a fix to mitigate its effects.
+*
+*	By encapsulating the value in an instance of the Value class, the bug is avoided as the value
+*	is accessed consistently without any unexpected transformations.
+*
+* @Version	1.0
+* @Author	GSANTOS
+*/
+class Value
+   method Value(&anyValue As any);
+
+   method Get() Returns any;
+   method Set(&newValue As any);
+
+private
+   instance any &Value;
+end-class;
+
+/**
+* Constructs a new Value object with the given value.
+*
+* @param &anyValue The value to be stored in the Value object.
+*/
+method Value
+   /+ &anyValue as Any +/
+   &Value = &anyValue;
+end-method;
+
+/**
+* Retrieves the stored value from the Value object.
+*
+* @return The stored value.
+*/
+method Get
+   /+ Returns Any +/
+   Return &Value;
+end-method;
+
+/**
+* Sets the value of the Value object.
+*
+* @param &newValue The new value to be stored.
+*/
+method Set
+   /+ &newValue as Any +/
+   &Value = &newValue;
+end-method;
+
